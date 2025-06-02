@@ -1,0 +1,29 @@
+pipeline {
+    agent any
+    environment {
+        GITHUB_CREDENTIALS = credentials('GITHUB_CREDENTIALS')
+        DOCKER_HUB_CREDENTIALS = credentials('DOCKER_HUB_CREDENTIALS')
+    }
+    stages {
+        stage('Clone Repository') {
+            steps {
+                git credentialsId: 'GITHUB_CREDENTIALS', url: 'https://github.com/karthikame01/june02_docker_deploy.git'
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t my-app .'
+            }
+        }
+        stage('Push to Docker Hub') {
+            steps {
+                withDockerRegistry([credentialsId: 'DOCKER_HUB_CREDENTIALS', url: 'https://index.docker.io/v1/']) {
+                    sh '''
+                    docker tag my-app <your-dockerhub-username>/my-app:latest
+                    docker push <your-dockerhub-username>/my-app:latest
+                    '''
+                }
+            }
+        }
+    }
+}
